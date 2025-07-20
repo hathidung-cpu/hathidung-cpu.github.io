@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pong Game v2</title>
+  <title>Pong Game v3</title>
   <style>
     canvas {
       background: black;
@@ -40,7 +40,6 @@
   <div id="winnerMessage"></div>
 
   <script>
-    const bounceSound = new Audio("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -63,6 +62,13 @@
 
     const paddleSpeed = 8;
     const botSpeed = 4;
+
+    // ✅ Fix scrolling issue with arrow keys
+    window.addEventListener("keydown", function(e) {
+      if (["ArrowUp", "ArrowDown"].includes(e.key)) {
+        e.preventDefault();
+      }
+    }, false);
 
     document.addEventListener("keydown", keyDownHandler);
     document.addEventListener("keyup", keyUpHandler);
@@ -132,7 +138,6 @@
       ) {
         ballSpeedX = -ballSpeedX;
         ballX = playerX + paddleWidth;
-        bounceSound.play();
       }
 
       // Bot paddle collision
@@ -143,7 +148,6 @@
       ) {
         ballSpeedX = -ballSpeedX;
         ballX = botX - 1;
-        bounceSound.play();
       }
 
       // Scoring
@@ -206,23 +210,5 @@
       draw();
     }
   </script>
-<h1>Credit</h1>
-<br>
-<h3>Devs:</h3>
-<br>
-<p>Main developer: chatgpt.com</p>
-<br>
-<p>sub-developer: huy hoang</p>
-<br>
-<h3>Contents:</h3>
-<br>
-<p>huy hoang</p>
-<br>
-<h3>Thanks</h3>
-<br>
-<p>Thanks chatgpt</p>
-<br>
-<p>And you too!</p>
-<p><br><br><br><br><br><br><br><br><br><br><br><br><br>(lol)</p>
 </body>
 </html>
