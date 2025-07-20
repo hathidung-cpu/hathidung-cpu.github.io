@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pong Game v2</title>
+  <style>
+    canvas {
+      background: black;
+      display: block;
+      margin: 20px auto;
+    }
+    #modeSelect {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #winnerMessage {
+      text-align: center;
+      color: white;
+      font-size: 24px;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="modeSelect">
+    <button onclick="startGame(0.03)">Easy</button>
+    <button onclick="startGame(0.02)">Medium</button>
+    <button onclick="startGame(0.01)">Hard</button>
+  </div>
+
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <div id="winnerMessage"></div>
+
+  <script>
+    const bounceSound = new Audio("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const paddleHeight = 100;
+    const paddleWidth = 10;
+    const playerX = 20;
+    const botX = canvas.width - 30;
+
+    let playerY, botY;
+    let ballX, ballY, ballSpeedX, ballSpeedY;
+    let upPressed = false;
+    let downPressed = false;
+
+    let playerScore = 0;
+    let botScore = 0;
+    const winningScore = 3;
+
+    let botFailChance = 0.01;
+    let gameRunning = false;
+
+    const paddleSpeed = 8;
+    const botSpeed = 4;
+
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+
+    function keyDownHandler(e) {
+      if (e.key === "ArrowUp") upPressed = true;
+      if (e.key === "ArrowDown") downPressed = true;
+    }
+
+    function keyUpHandler(e) {
+      if (e.key === "ArrowUp") upPressed = false;
+      if (e.key === "ArrowDown") downPressed = false;
+    }
+
+    function drawPaddle(x, y) {
+      ctx.fillStyle = "white";
+      ctx.fillRect(x, y, paddleWidth, paddleHeight);
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawScore() {
+      ctx.font = "24px Arial";
+      ctx.fillStyle = "white";
+      ctx.fillText(`Player: ${playerScore}`, 50, 30);
+      ctx.fillText(`Bot: ${botScore}`, canvas.width - 150, 30);
+    }
+
+    function drawWinner(message) {
+      document.getElementById("winnerMessage").textContent = message;
+      document.getElementById("winnerMessage").style.display = "block";
+      gameRunning = false;
+    }
+
+    function movePlayer() {
+      if (upPressed && playerY > 0) playerY -= paddleSpeed;
+      if (downPressed && playerY < canvas.height - paddleHeight) playerY += paddleSpeed;
+    }
+
+    function moveBot() {
+      if (Math.random() < botFailChance) return;
+
+      const centerBot = botY + paddleHeight / 2;
+      if (centerBot < ballY - 10) botY += botSpeed;
+      else if (centerBot > ballY + 10) botY -= botSpeed;
+
+      botY = Math.max(0, Math.min(canvas.height - paddleHeight, botY));
+    }
+
+    function moveBall() {
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY <= 0 || ballY >= canvas.height) ballSpeedY = -ballSpeedY;
+
+      // Player paddle collision
+      if (
+        ballX <= playerX + paddleWidth &&
+        ballY >= playerY &&
+        ballY <= playerY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+        ballX = playerX + paddleWidth;
+        bounceSound.play();
+      }
+
+      // Bot paddle collision
+      if (
+        ballX >= botX &&
+        ballY >= botY &&
+        ballY <= botY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+        ballX = botX - 1;
+        bounceSound.play();
+      }
+
+      // Scoring
+      if (ballX < 0) {
+        botScore++;
+        checkScore();
+        resetBall();
+      }
+      if (ballX > canvas.width) {
+        playerScore++;
+        checkScore();
+        resetBall();
+      }
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = 5 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+    }
+
+    function checkScore() {
+      if (playerScore >= winningScore) {
+        drawWinner("🎉 You Win!");
+      } else if (botScore >= winningScore) {
+        drawWinner("😢 Bot Wins!");
+      }
+    }
+
+    function draw() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawPaddle(playerX, playerY);
+      drawPaddle(botX, botY);
+      drawBall();
+      drawScore();
+
+      movePlayer();
+      moveBot();
+      moveBall();
+
+      requestAnimationFrame(draw);
+    }
+
+    function startGame(failChance) {
+      // Reset state
+      botFailChance = failChance;
+      playerScore = 0;
+      botScore = 0;
+      playerY = canvas.height / 2 - paddleHeight / 2;
+      botY = canvas.height / 2 - paddleHeight / 2;
+      document.getElementById("winnerMessage").style.display = "none";
+      document.getElementById("modeSelect").style.display = "none";
+
+      resetBall();
+      gameRunning = true;
+      draw();
+    }
+  </script>
+<h1>Credit</h1>
+<br>
+<h3>Devs:</h3>
+<br>
+<p>Main developer: chatgpt.com</p>
+<br>
+<p>sub-developer: huy hoang</p>
+<br>
+<h3>Contents:</h3>
+<br>
+<p>huy hoang</p>
+<br>
+<h3>Thanks</h3>
+<br>
+<p>Thanks chatgpt</p>
+<br>
+<p>And you too!</p>
+<p><br><br><br><br><br><br><br><br><br><br><br><br><br>(lol)</p>
+</body>
+</html>
